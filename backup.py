@@ -7,6 +7,8 @@
 # Browser simulation
 from selenium import webdriver
 import selenium.common.exceptions as seleniumExceptions
+# Downloads
+import requests
 # Filesystem handling
 import os
 # Waiting
@@ -55,7 +57,7 @@ def retrieveSubjects(browser):
         containedSubjects = container.find_elements_by_class_name(\
             'portfolio-link')
 
-        # Each found subject is stores, associating its name with its URL
+        # Each found subject is stored, associating its name with its URL
         foundSubjects = {}
 
         for subject in containedSubjects:
@@ -114,31 +116,32 @@ def retrieveSubjectContents(browser, destination, subjectURL):
 
             if not os.path.exists(fileElement['filePath']):
                 
-                currentTry = 0
+                # Starts the download. The server just checks if the following
+                # cookie exists to determine if an user is logged in.
+                # Therefore, it is included along with the request to be able
+                # to perform the download from the 'requests' module
+                #
+                # It is also important to set 'stream=True' so that the whole
+                # file is not directly downloaded into memory, which could
+                # cause much trouble when dealing with big files
+                data = requests.get(fileElement['fileURL'], cookies={\
+                    'usuario':'quieroapuntes2017'}, stream=True)
 
-                # Starts the download
-                browser.get(fileElement['fileURL'])
-
-                # When the file is fully retrieved, it gets moved to its
-                # corresponding directory
-                # It will also skip the file after a 1 min wait
-                while not os.path.exists(fileElement['fileName']) and \
-                    currentTry < 60 * 5:
-                    
-                    currentTry += 1
-                    
-                    # The script waits 200 ms before checking again if the
-                    # file is already downloaded
-                    sleep(0.2)
-
-                # If the file has been successfully retrieved
-                if currentTry < 60 * 5:
-                    os.rename(fileElement['fileName'], \
-                        fileElement['filePath'])
-                    
-                else:
-                    print('\t\t[!] No se ha podido descargar el fichero:', \
-                        fileElement['fileName'])
+                # Saves the requested data as the destination file step by
+                # step
+                with open(fileElement['filePath'], 'wb') as f:
+                    # Each chunk will approximately be about 1MB (size goes in
+                    # bytes)
+                    for chunk in data.iter_content(chunk_size=1048576):
+                        # Filtering out keep-alive chunks (they have no data)
+                        if chunk:
+                            f.write(chunk)
+               
+                # NOTE: the repository lists some files that actually are not
+                # avaiable. However, when one of these files is requested, the
+                # server replies with the main page and the '200 OK' code, so
+                # there is no way to tell those files apart from the ones that
+                # actually are available
 
             # Current output's line is cleared before moving on
             print('\x1b[2K', end='\r', flush=True)
