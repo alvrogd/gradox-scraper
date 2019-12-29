@@ -11,8 +11,23 @@ import selenium.common.exceptions as seleniumExceptions
 import requests
 # Filesystem handling
 import os
-# Waiting
-from time import sleep
+
+
+def friendlifyString(string):
+
+    # Accent removal
+    import unicodedata
+    # Simbol removal
+    import re
+
+    # Firstly, all accents are converted into non-accented characters
+    # 'Mn' = Nonspacing_Mark
+    newString = ''.join(c for c in unicodedata.normalize('NFD', string) if \
+        unicodedata.category(c) != 'Mn')
+
+    # Secondly, all other characters that are not accepted are converted
+    # into an underscore 
+    return(re.sub(r'[^A-Za-z0-9_./\-]', '_', newString))
 
 
 def openGradox(browser):
@@ -91,8 +106,8 @@ def retrieveSubjectContents(browser, destination, subjectURL):
             containedFiles.append({\
                 'fileName':fileElement.get_attribute('textContent'), \
                 'fileURL':fileElement.get_attribute('href'), \
-                'filePath':os.path.join(destination, \
-                    fileElement.get_attribute('textContent'))})
+                'filePath':friendlifyString(os.path.join(destination, \
+                    fileElement.get_attribute('textContent')))})
             
         # And each found file is downloaded to the specified destination, if it
         # does not already exist
@@ -118,9 +133,15 @@ def retrieveSubjectContents(browser, destination, subjectURL):
                 # Saves the requested data as the destination file step by
                 # step
                 with open(fileElement['filePath'], 'wb') as f:
-                    # Each chunk will approximately be about 1MB (size goes in
-                    # bytes)
-                    for chunk in data.iter_content(chunk_size=1048576):
+                    # Each chunk will approximately be about 10MB (size goes
+                    # in bytes)
+                    #
+                    # WARNING: switching to a small size may be prone to
+                    # cause the following error because of still unknown
+                    # reasons:
+                    #   ssl.SSLError: [SSL: DECRYPTION_FAILED_OR_BAD_RECORD_
+                    #   MAC] decryption failed or bad record mac (_ssl.c:2508)
+                    for chunk in data.iter_content(chunk_size=1024*1024*10):
                         # Filtering out keep-alive chunks (they have no data)
                         if chunk:
                             f.write(chunk)
@@ -164,7 +185,7 @@ if __name__ == "__main__":
 
             # A directory is also created for each subject (inside its grade's
             # folder)
-            subjectDirectory = os.path.join(grade, subjectName)
+            subjectDirectory = friendlifyString(os.path.join(grade, subjectName))
             createDirectory(subjectDirectory)
 
             # And its contents are downloaded inside that directory
