@@ -127,24 +127,19 @@ def retrieveSubjectContents(browser, destination, subjectURL):
                 # It is also important to set 'stream=True' so that the whole
                 # file is not directly downloaded into memory, which could
                 # cause much trouble when dealing with big files
-                data = requests.get(fileElement['fileURL'], cookies={\
-                    'usuario':'quieroapuntes2017'}, stream=True)
+                with requests.get(fileElement['fileURL'], cookies={\
+                    'usuario':'quieroapuntes2017'}, stream=True) as data:
 
-                # Saves the requested data as the destination file step by
-                # step
-                with open(fileElement['filePath'], 'wb') as f:
-                    # Each chunk will approximately be about 10MB (size goes
-                    # in bytes)
-                    #
-                    # WARNING: switching to a small size may be prone to
-                    # cause the following error because of still unknown
-                    # reasons:
-                    #   ssl.SSLError: [SSL: DECRYPTION_FAILED_OR_BAD_RECORD_
-                    #   MAC] decryption failed or bad record mac (_ssl.c:2508)
-                    for chunk in data.iter_content(chunk_size=1024*1024*10):
-                        # Filtering out keep-alive chunks (they have no data)
-                        if chunk:
-                            f.write(chunk)
+                    # Saves the requested data as the destination file step by
+                    # step
+                    with open(fileElement['filePath'], 'wb') as f:
+                        # Each chunk will approximately be about 1MB (size
+                        # goes in bytes)
+                        for chunk in data.iter_content(chunk_size=1024*1024):
+                            # Filtering out keep-alive chunks (they have no
+                            # data)
+                            if chunk:
+                                f.write(chunk)
                
                 # NOTE: the repository lists some files that actually are not
                 # avaiable. However, when one of these files is requested, the
