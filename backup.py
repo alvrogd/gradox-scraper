@@ -15,18 +15,6 @@ import os
 from time import sleep
 
 
-def configureDownloads():
-
-    # Default options
-    options = webdriver.ChromeOptions()
-
-    # Default download directory is changed to the current one
-    prefs = {'download.default_directory' : os.getcwd()}
-    options.add_experimental_option('prefs', prefs)
-    
-    return(options)
-
-
 def openGradox(browser):
 
     # Accessing to the login page
@@ -153,12 +141,8 @@ def retrieveSubjectContents(browser, destination, subjectURL):
 
 if __name__ == "__main__":
 
-    # First of all, a profile needs to be created to configure Chrome to
-    # download files to the working directory
-    profile = configureDownloads()
-
     # Chrome will be used to access the website
-    browser = webdriver.Chrome(options=profile)
+    browser = webdriver.Chrome()
 
     # Getting access to the repository
     openGradox(browser)
