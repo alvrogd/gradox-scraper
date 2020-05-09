@@ -11,6 +11,37 @@ import selenium.common.exceptions as seleniumExceptions
 import requests
 # Filesystem handling
 import os
+# Argument parsing
+import argparse
+
+
+def parseArguments():
+    # Dictionaries with supported argument choices and their conversions 
+    # Course index to Gradox's strings
+    dCourses = {1: "primeiro", 2: "segundo", 3: "terceiro", 4: "cuarto"}
+    # Supported driver name to WebDriver constructor
+    # TODO: add more drivers (written by the Internet Explorer gang)
+    dDrivers = {"firefox": webdriver.Firefox, "chrome": webdriver.Chrome}
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--curso",
+                        type = int,
+                        nargs = "+",
+                        choices = dCourses.keys(),
+                        help = "qué cursos descargar")
+    parser.add_argument("-d", "--driver",
+                        type = str.lower,
+                        choices = dDrivers.keys(),
+                        help = "driver con que abrir Gradox")
+    args = parser.parse_args()
+
+    # Convert args to expected classes
+    # courses is {} if no courses were chosen
+    courses = {dCourses[x] for x in (args.curso or [])}
+    # driver is None if no driver was chosen 
+    driver = dDrivers.get(args.driver) 
+
+    return courses, driver
 
 
 def friendlifyString(string):
@@ -156,9 +187,11 @@ def retrieveSubjectContents(browser, destination, subjectURL):
 
 
 if __name__ == "__main__":
+    # Parse arguments first (in case args are incorrect or --help)
+    chosenGrades, chosenDriver = parseArguments()
 
-    # Chrome will be used to access the website
-    browser = webdriver.Chrome()
+    # Use Chrome if no other driver was chosen
+    browser = chosenDriver() if chosenDriver else webdriver.Chrome()
 
     # Getting access to the repository
     openGradox(browser)
@@ -168,6 +201,9 @@ if __name__ == "__main__":
 
     # For each grade's subjects
     for grade, subjects in availableSubjects.items():
+        # Skip download of grade if it was not chosen
+        if chosenGrades and grade not in chosenGrades:
+            continue
 
         print("[!] Descargando ficheros del curso:", grade)
 
