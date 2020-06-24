@@ -26,15 +26,15 @@ def parseArguments():
     dDrivers = {"firefox": webdriver.Firefox, "chrome": webdriver.Chrome}
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--curso",
+    parser.add_argument("-g", "--grade",
                         type = int,
                         nargs = "+",
                         choices = dCourses.keys(),
-                        help = "qué cursos descargar")
+                        help = "which grades will be downloaded")
     parser.add_argument("-d", "--driver",
                         type = str.lower,
                         choices = dDrivers.keys(),
-                        help = "driver con el que abrir Gradox")
+                        help = "browser through which Gradox will be accessed")
     args = parser.parse_args()
 
     # Convert args to expected classes
@@ -144,7 +144,7 @@ def retrieveSubjectContents(browser, destination, subjectURL):
         # does not already exist
         for counter, fileElement in enumerate(containedFiles):
 
-            print('\t\t[!] Descargando el fichero: ', \
+            print('\t\t[!] Downloading the following file: ', \
                 fileElement['fileName'], ' (', counter + 1, ' de ', \
                 len(containedFiles), ')', sep='', end='\r', flush=True)
 
@@ -207,24 +207,27 @@ if __name__ == "__main__":
         if chosenGrades and grade not in chosenGrades:
             continue
 
-        print("[!] Descargando ficheros del curso:", grade)
+        print("[!] Downloading all contents in the following grade:", grade)
 
         # The grade's directory is created if it does not already exist
         createDirectory(grade)
         
         for subjectName, subjectURL in subjects.items():
 
-            print('\t[!] Descargando ficheros de la asignatura:', subjectName)
+            print('\t[!] Downloading all contents in the following subject:', \
+                subjectName)
 
             # A directory is also created for each subject (inside its grade's
             # folder) if it does not already exist
-            subjectDirectory = friendlifyString(os.path.join(grade, subjectName))
+            subjectDirectory = friendlifyString(os.path.join(grade, \
+                subjectName))
             createDirectory(subjectDirectory)
 
-            # And its locally missing contents are downloaded inside that directory
+            # And its locally missing contents are downloaded inside that
+            # directory
             retrieveSubjectContents(browser, subjectDirectory, subjectURL)
 
-        print('[!] Finalizada la descarga de los ficheros del curso:', \
+        print('[!] Contents in the following grade have been downloaded:', \
             grade, end='\n\n')
 
     # Before existing, the browser must be closed
