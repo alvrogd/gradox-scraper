@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Author: Álvaro Goldar Dieste
+# Authors: @alvrogd, @DColadas
 # Creation date: 25/12/2019
 
 
@@ -16,9 +16,11 @@ import argparse
 
 
 def parseArguments():
+
     # Dictionaries with supported argument choices and their conversions 
     # Course index to Gradox's strings
     dCourses = {1: "primeiro", 2: "segundo", 3: "terceiro", 4: "cuarto"}
+
     # Supported driver name to WebDriver constructor
     # TODO: add more drivers (written by the Internet Explorer gang)
     dDrivers = {"firefox": webdriver.Firefox, "chrome": webdriver.Chrome}
@@ -32,7 +34,7 @@ def parseArguments():
     parser.add_argument("-d", "--driver",
                         type = str.lower,
                         choices = dDrivers.keys(),
-                        help = "driver con que abrir Gradox")
+                        help = "driver con el que abrir Gradox")
     args = parser.parse_args()
 
     # Convert args to expected classes
@@ -48,7 +50,7 @@ def friendlifyString(string):
 
     # Accent removal
     import unicodedata
-    # Simbol removal
+    # Symbol removal
     import re
 
     # Firstly, all accents are converted into non-accented characters
@@ -66,25 +68,23 @@ def openGradox(browser):
     # Accessing to the login page
     browser.get('https://www.gradox.es')
 
-    # Password field is filled
+    # Filling the password field
     browser.find_element_by_name('ac').send_keys('apuntes')
 
-    # Login is performed
+    # Performing the login
     browser.find_element_by_name('submit-login').click()
 
 
 def retrieveSubjects(browser):
 
-    # Result
     subjects = {}
 
     # Subjects are sorted by grade
     sortingKeys = ['primeiro', 'segundo', 'terceiro', 'cuarto']
 
-    # For each group of subjects
     for key in sortingKeys:
 
-        # The container of the subjects is retrieved
+        # The container of the subjects (one for each grade) is retrieved
         container = browser.find_element_by_id(key)
 
         # All the contained subjects are retrieved from that container
@@ -187,6 +187,7 @@ def retrieveSubjectContents(browser, destination, subjectURL):
 
 
 if __name__ == "__main__":
+
     # Parse arguments first (in case args are incorrect or --help)
     chosenGrades, chosenDriver = parseArguments()
 
@@ -201,13 +202,14 @@ if __name__ == "__main__":
 
     # For each grade's subjects
     for grade, subjects in availableSubjects.items():
+
         # Skip download of grade if it was not chosen
         if chosenGrades and grade not in chosenGrades:
             continue
 
         print("[!] Descargando ficheros del curso:", grade)
 
-        # The grade's directory is created
+        # The grade's directory is created if it does not already exist
         createDirectory(grade)
         
         for subjectName, subjectURL in subjects.items():
@@ -215,11 +217,11 @@ if __name__ == "__main__":
             print('\t[!] Descargando ficheros de la asignatura:', subjectName)
 
             # A directory is also created for each subject (inside its grade's
-            # folder)
+            # folder) if it does not already exist
             subjectDirectory = friendlifyString(os.path.join(grade, subjectName))
             createDirectory(subjectDirectory)
 
-            # And its contents are downloaded inside that directory
+            # And its locally missing contents are downloaded inside that directory
             retrieveSubjectContents(browser, subjectDirectory, subjectURL)
 
         print('[!] Finalizada la descarga de los ficheros del curso:', \
