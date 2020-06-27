@@ -9,7 +9,7 @@ Its contents have been primarily provided by the students, and they cover:
 
 This Python script takes care of **browsing all the available content in the repository and retrieving it to the local storage**.
 
-## ¿Why was gradox-scraper created?
+## Why was gradox-scraper created?
 
 The repository faces a **huge challenge: if the server that hosts it does not answer, there is no other way to access its files**. It may seem like an uncommon event, and indeed it its, but it tends to have bad timing, as in the weeks that lead up to the final terms.
 
